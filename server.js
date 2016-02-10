@@ -3,9 +3,13 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var app = express();
 var passport = require('passport');
+var mongoose = require('mongoose');
+var User = require('./user.js')
 var FitbitStrategy = require( 'passport-fitbit-oauth2' ).FitbitOAuth2Strategy;
 
 app.set('port', process.env.PORT || 8080);
+
+mongoose.connect("mongodb://jamiebrown201:sadman@apollo.modulusmongo.net:27017/edOd6uqi");
 
 app.use(express.static(__dirname));
 app.use(bodyParser.urlencoded({'extended':'true'}));
@@ -33,17 +37,12 @@ passport.use(new FitbitStrategy({
     callbackURL: "http://localhost:8080/auth/fitbit/callback"
   },
   function(accessToken, refreshToken, profile, done) {
-    // User.findOrCreate({ fitbitId: profile.id }, function (err, user) {
-    //   return done(err, user);
-  //   }
-  // );
-  console.log(profile);
-  console.log(accessToken);
-  console.log(refreshToken);
-  console.log(done);
-
+    User.create({ fitbitId: profile.id }, function (err, user) {
+      return done(err, user);
+    });
   }
 ));
+
 
 
 app.get('/auth/fitbit',
@@ -54,3 +53,7 @@ app.get( '/auth/fitbit/callback', passport.authenticate( 'fitbit', {
         successRedirect: '/auth/fitbit/success',
         failureRedirect: '/auth/fitbit/failure'
 }));
+
+app.get('/auth/fitbit/success', function(req,res) {
+  res.send("hello");
+});
